@@ -22,6 +22,7 @@ conditions.  ZNC Push current supports the following services:
 * [Faast][]
 * [Nexmo][]
 * [Pushalot][]
+* [Pushjet][]
 * Custom URL GET requests
 
 This project is still a Work In Progress, but should be functional enough and stable enough
@@ -49,6 +50,12 @@ need to install the development package before building this module. On Ubuntu, 
 be installed with:
 
     $ sudo aptitude install znc-dev
+
+In order for this plugin to properly work, you will need to ensure you have the `ca-certificates`
+package on Ubuntu based systems. This is required for push to properly verify the certificate
+of the service it's sending your message to.
+
+    $ sudo aptitude install ca-certificates
 
 Optionally, if you want to use libcurl for http requests, you also need to install cURL
 development header files.
@@ -241,6 +248,7 @@ to something similar to "http://domain/#channel/2011-03-09 14:25:09", or
     *   `pushbullet`
     *   `airgram`
     *   `nexmo`
+    *   `pushjet`
     *   `url`
 
 *   `username` Default: ` `
@@ -256,7 +264,7 @@ to something similar to "http://domain/#channel/2011-03-09 14:25:09", or
 
     Authentication token for push notifications.
 
-    This option must be set when using Notify My Android, Pushover, Prowl, Supertoasty, Airgram authenticated services, PushBullet, or Nexmo.
+    This option must be set when using Notify My Android, Pushover, Prowl, Supertoasty, Airgram authenticated services, PushBullet, Nexmo or Pushjet.
 
     When using the custom URL service, if this option is set it will enable HTTP basic
     authentication and be used as password.
@@ -318,7 +326,7 @@ to something similar to "http://domain/#channel/2011-03-09 14:25:09", or
 *   `message_priority` Default: ` `
 
     Priority level that will be used for the push notification.
-    Currently supported only by Pushover.net and Notify My Android.
+    Currently supported only by Pushover.net, Notify My Android and Pushjet.
 
 *   `message_sound` Default: ` `
 
@@ -525,6 +533,7 @@ from me and not from my employer.  See the `LICENSE` file for details.
 [Faast]: http://faast.io/
 [Nexmo]: https://www.nexmo.com
 [Pushalot]: https://pushalot.com/
+[Pushjet]: http://pushjet.io
 
 [faq]: https://github.com/jreese/znc-push/blob/master/doc/faq.md
 [examples]: https://github.com/jreese/znc-push/blob/master/doc/examples.md

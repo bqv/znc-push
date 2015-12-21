@@ -9,7 +9,9 @@
  */
 
 #define REQUIRESSL
+#ifndef PUSHVERSION
 #define PUSHVERSION "dev"
+#endif
 
 #include <znc/znc.h>
 #include <znc/Chan.h>
@@ -94,7 +96,9 @@ class CPushSocket : public CSocket
 // forward declaration
 CURLcode make_curl_request(const CString& service_host, const CString& service_url,
 						   const CString& service_auth, MCString& params, int port,
-						   bool use_ssl, bool use_post, bool debug);
+						   bool use_ssl, bool use_post,
+						   const CString& proxy, bool proxy_ssl_verify,
+						   bool debug);
 #endif // USE_CURL
 
 /**
@@ -310,14 +314,14 @@ class CPushMod : public CModule
 				{
 					params["device_iden"] = options["target"];
 				}
-				
+
 				if (message_uri == "")
 				{
 					params["type"] = "note";
 				} else {
 					params["type"] = "link";
 					params["url"] = message_uri;
-				}					
+				}
 				params["title"] = message_title;
 				params["body"] = message_content;
 			}
@@ -429,30 +433,30 @@ class CPushMod : public CModule
 
 			else if (service == "pushalot")
 			  {
-			    if (options["secret"] == "")
-			      {
+				if (options["secret"] == "")
+				  {
 				PutModule("Error: secret (authorization token) not set");
 				return;
-			      }
+				  }
 
-			    service_host = "pushalot.com";
-			    service_url = "/api/sendmessage";
+				service_host = "pushalot.com";
+				service_url = "/api/sendmessage";
 
-			    params["AuthorizationToken"] = options["secret"];
-			    params["Title"] = message_title;
-			    params["Body"] = message_content;
+				params["AuthorizationToken"] = options["secret"];
+				params["Title"] = message_title;
+				params["Body"] = message_content;
 
-			    if (message_uri != "")
-			      {
+				if (message_uri != "")
+				  {
 				params["Link"] = message_uri;
-			      }
+				  }
 
-			    if ( options["message_uri_title"] != "" )
-			      {
+				if ( options["message_uri_title"] != "" )
+				  {
 				params["LinkTitle"] = options["message_uri_title"];
-			      }
+				  }
 			  }
-			
+
 			else if (service == "prowl")
 			{
 				if (options["secret"] == "")
@@ -520,29 +524,29 @@ class CPushMod : public CModule
 			{
 			  if (options["username"] == "")
 			  {
-			    PutModule("Error: username (api key) not set");
-			    return;
+				PutModule("Error: username (api key) not set");
+				return;
 			  }
 			  if (options["secret"] == "")
 			  {
-			    PutModule("Error: secret (api secret) not set");
-			    return;
+				PutModule("Error: secret (api secret) not set");
+				return;
 			  }
 			  if (options["target"] == "")
 			  {
-			    PutModule("Error: destination mobile number (in international format) not set");
-			    return;
+				PutModule("Error: destination mobile number (in international format) not set");
+				return;
 			  }
-			  
+
 			  service_host = "rest.nexmo.com";
 			  service_url = "/sms/json";
-			  
+
 			  params["api_secret"] = options["secret"];
 			  params["api_key"] = options["username"];
 			  params["from"] = message_title;
 			  params["to"] = options["target"];
 			  params["text"] = message_content;
-			  
+
 			}
 			else if (service == "url")
 			{
@@ -666,27 +670,50 @@ class CPushMod : public CModule
 
 				PutDebug("payload: " + params["payload"]);
 			}
+			else if (service == "pushjet")
+			{
+				if (options["secret"] == "")
+				{
+					PutModule("Error: secret (service key) not set");
+					return;
+				}
+
+				service_host = "api.pushjet.io";
+				service_url = "/message";
+
+				params["secret"] = options["secret"];
+				params["title"] = message_title;
+				params["message"] = message_content;
+
+				if (message_uri != "")
+				{
+					params["link"] = message_uri;
+				}
+
+				if (options["message_priority"] != "")
+				{
+					params["level"] = options["message_priority"];
+				}
+			}
 			else
 			{
 				PutModule("Error: service type not selected");
 				return;
 			}
 
-            PutDebug("service: " + service);
-            PutDebug("service_host: " + service_host);
-            PutDebug("service_url: " + service_url);
-            PutDebug("service_auth: " + service_auth);
-            PutDebug("use_port: " + CString(use_port));
-            PutDebug("use_ssl: " + CString(use_ssl ? 1 : 0));
-            PutDebug("use_post: " + CString(use_post ? 1 : 0));
+			PutDebug("service: " + service);
+			PutDebug("service_host: " + service_host);
+			PutDebug("service_url: " + service_url);
+			PutDebug("service_auth: " + service_auth);
+			PutDebug("use_port: " + CString(use_port));
+			PutDebug("use_ssl: " + CString(use_ssl ? 1 : 0));
+			PutDebug("use_post: " + CString(use_post ? 1 : 0));
 
 #ifdef USE_CURL
-            PutDebug("using libcurl");
-      params["proxy"] = options["proxy"];
-			params["proxy_ssl_verify"] = options["proxy_ssl_verify"];
-      make_curl_request(service_host, service_url, service_auth, params, use_port, use_ssl, use_post, options["debug"] == "on");
+			PutDebug("using libcurl");
+			make_curl_request(service_host, service_url, service_auth, params, use_port, use_ssl, use_post, options["proxy"], options["proxy_ssl_verify"] != "no", options["debug"] == "on");
 #else
-            PutDebug("NOT using libcurl");
+			PutDebug("NOT using libcurl");
 			// Create the socket connection, write to it, and add it to the queue
 			CPushSocket *sock = new CPushSocket(this);
 			sock->Connect(service_host, use_port, use_ssl);
@@ -881,7 +908,7 @@ class CPushMod : public CModule
 
             return !match.empty();
 		}
-        
+
 		/**
 		 * Determine if the given context matches any context rules.
 		 *
@@ -921,7 +948,7 @@ class CPushMod : public CModule
 
 			return false;
 		}
-        
+
 
 		/**
 		 * Check if the idle condition is met.
@@ -1000,7 +1027,7 @@ class CPushMod : public CModule
 
 			return true;
 		}
-		
+
 		/**
 		 * Check if the network_blacklist condition is met.
 		 *
@@ -1349,9 +1376,9 @@ class CPushMod : public CModule
 						}
 						else if (value == "pushalot")
 						  {
-						    PutModule("Note: Pushalot requires setting the 'secret' (to user key) (to authorization token) option");
+							PutModule("Note: Pushalot requires setting the 'secret' (to user key) (to authorization token) option");
 						  }
-						
+
 						else if (value == "prowl")
 						{
 							PutModule("Note: Prowl requires setting the 'secret' option");
@@ -1379,6 +1406,10 @@ class CPushMod : public CModule
 						else if (value == "slack")
 						{
 							PutModule("Note: Slack requires setting 'secret' (from webhook) and 'target' (channel or username), optional 'username' (bot name)");
+						}
+						else if (value == "pushjet")
+						{
+							PutModule("Note: Pushjet requires setting 'secret' (service key) option");
 						}
 						else
 						{
@@ -1622,7 +1653,7 @@ class CPushMod : public CModule
 				table.AddRow();
 				table.SetCell("Condition", "idle");
 				table.SetCell("Status", CString(ago) + " seconds");
-				
+
 				table.AddRow();
 				table.SetCell("Condition", "network_blacklist");
 				// network_blacklist() is True if the network is not in a blacklist
@@ -1712,11 +1743,8 @@ class CPushMod : public CModule
 					return;
 				}
 
-				params["proxy"] = options["proxy"];
-				params["proxy_ssl_verify"] = options["proxy_ssl_verify"];
-
 #ifdef USE_CURL
-				make_curl_request(service_host, service_url, service_auth, params, use_port, use_ssl, use_post, options["debug"] == "on");
+				make_curl_request(service_host, service_url, service_auth, params, use_port, use_ssl, use_post, options["proxy"], options["proxy_ssl_verify"] != "no", options["debug"] == "on");
 #else
 				// Create the socket connection, write to it, and add it to the queue
 				CPushSocket *sock = new CPushSocket(this);
@@ -1803,7 +1831,9 @@ CString build_query_string(MCString& params)
  */
 CURLcode make_curl_request(const CString& service_host, const CString& service_url,
 						   const CString& service_auth, MCString& params, int port,
-						   bool use_ssl, bool use_post, bool debug)
+						   bool use_ssl, bool use_post,
+						   const CString& proxy, bool proxy_ssl_verify,
+						   bool debug)
 {
 	CURL *curl;
 	CURLcode result;
@@ -1841,10 +1871,10 @@ CURLcode make_curl_request(const CString& service_host, const CString& service_u
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, query.length());
 	}
 
-	if (params["proxy"] != "") {
-		curl_easy_setopt(curl, CURLOPT_PROXY, params["proxy"].c_str());
+	if (proxy != "") {
+		curl_easy_setopt(curl, CURLOPT_PROXY, proxy.c_str());
 
-		if (params["proxy_ssl_verify"] == "no") {
+		if (!proxy_ssl_verify) {
 			curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 		}
 	}
