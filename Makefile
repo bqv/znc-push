@@ -1,4 +1,4 @@
-version := $(shell git describe --dirty)
+version := $(shell date +%s)
 curl=no
 
 ifneq ($(curl),no)
