@@ -20,6 +20,25 @@
 #include <znc/Client.h>
 #include "time.h"
 #include <string.h>
+#include <regex>
+
+/// Escape all non-alphanumeric characters or special characters in pattern.
+CString re_escape(const CString& sString) {
+    CString sEscaped;
+
+    for (const char& character : sString) {
+        if (isalpha(character) || isdigit(character)) {
+            sEscaped += character;
+        } else if (character == '\x00') {
+            sEscaped += "\\000";
+        } else {
+            sEscaped += "\\";
+            sEscaped += character;
+        }
+    }
+
+    return sEscaped;
+}
 
 #ifdef USE_CURL
 #include <curl/curl.h>
@@ -841,47 +860,26 @@ class CPushMod : public CModule
 		 */
 		bool highlight(const CString& message)
 		{
-			CString msg = " " + message.AsLower() + " ";
+            CString value = options["highlight"];
+            if (value.Equals(""))
+            {
+                if (m_pNetwork)
+                {
+                    value = m_pNetwork->ExpandString(value);
+                }
+                else
+                {
+                    value = GetUser()->ExpandString(value);
+                }
+            }
 
-			VCString values;
-			options["highlight"].Split(" ", values, false);
-			values.push_back("%nick%");
+            std::smatch match;
+			std::regex expression = std::regex(value,
+                    std::regex_constants::ECMAScript | std::regex_constants::icase);
 
-			for (VCString::iterator i = values.begin(); i != values.end(); i++)
-			{
-				CString value = i->AsLower();
-				char prefix = value[0];
-				bool push = true;
+            regex_search(message, match, expression);
 
-				if (prefix == '-')
-				{
-					push = false;
-					value.LeftChomp(1);
-				}
-				else if (prefix == '_')
-				{
-					value = " " + value.LeftChomp_n(1) + " ";
-				}
-
-				// Expand substrings like %nick%
-				if (m_pNetwork)
-				{
-					value = m_pNetwork->ExpandString(value);
-				}
-				else
-				{
-					value = GetUser()->ExpandString(value);
-				}
-
-				value = "*" + value.AsLower() + "*";
-
-				if (msg.WildCmp(value))
-				{
-					return push;
-				}
-			}
-
-			return false;
+            return !match.empty();
 		}
         
 		/**
