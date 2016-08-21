@@ -312,7 +312,7 @@ class CPushMod : public CModule
 
 				if (options["target"] != "")
 				{
-					params["device_iden"] = options["target"];
+					params["target_device_iden"] = options["target"];
 				}
 
 				if (message_uri == "")
@@ -694,6 +694,20 @@ class CPushMod : public CModule
 				{
 					params["level"] = options["message_priority"];
 				}
+			}
+			else if (service == "telegram")
+			{
+				if ((options["secret"] == "") || (options["target"] ==""))
+				{
+					PutModule("Error: secret (API key) or target (chat_id) not set");
+					return;
+				}
+
+				service_host = "api.telegram.org";
+				service_url = "/bot" + options["secret"] + "/sendMessage";
+
+				params["chat_id"] = options["target"];
+				params["text"] = message_content;
 			}
 			else
 			{
@@ -1411,6 +1425,10 @@ class CPushMod : public CModule
 						{
 							PutModule("Note: Pushjet requires setting 'secret' (service key) option");
 						}
+						else if (value == "telegram")
+						{
+							PutModule("Note: Telegram requires setting both the 'secret' (api key) and 'target' (chat_id)");
+						}
 						else
 						{
 							PutModule("Error: unknown service name");
@@ -1844,6 +1862,10 @@ CURLcode make_curl_request(const CString& service_host, const CString& service_u
 
 	CString url = CString(use_ssl ? "https" : "http") + "://" + service_host + service_url;
 	CString query = build_query_string(params);
+	if (!query.empty())
+	{
+		url = url + "?" + query;
+	}
 
 	if (debug)
 	{

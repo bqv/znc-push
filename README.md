@@ -1,7 +1,7 @@
 ZNC Push
 ========
 
-[FAQ][] | [Example Configuration][examples]
+[FAQ][] | [Example Configuration][examples] | [![Build Status](https://travis-ci.org/jreese/znc-push.svg?branch=master)](https://travis-ci.org/jreese/znc-push)
 
 
 Overview
@@ -23,6 +23,7 @@ conditions.  ZNC Push current supports the following services:
 * [Nexmo][]
 * [Pushalot][]
 * [Pushjet][]
+* [Telegram][]
 * Custom URL GET requests
 
 This project is still a Work In Progress, but should be functional enough and stable enough
@@ -249,6 +250,7 @@ to something similar to "http://domain/#channel/2011-03-09 14:25:09", or
     *   `airgram`
     *   `nexmo`
     *   `pushjet`
+    *   `telegram`
     *   `url`
 
 *   `username` Default: ` `
@@ -264,7 +266,7 @@ to something similar to "http://domain/#channel/2011-03-09 14:25:09", or
 
     Authentication token for push notifications.
 
-    This option must be set when using Notify My Android, Pushover, Prowl, Supertoasty, Airgram authenticated services, PushBullet, Nexmo or Pushjet.
+    This option must be set when using Notify My Android, Pushover, Prowl, Supertoasty, Airgram authenticated services, PushBullet, Nexmo, Pushjet, or Telegram.
 
     When using the custom URL service, if this option is set it will enable HTTP basic
     authentication and be used as password.
@@ -283,6 +285,8 @@ to something similar to "http://domain/#channel/2011-03-09 14:25:09", or
 
     When using Airgram, this is the email address of the end user.
 
+    When using Telegram, this is the id of the chat that receives the message.
+
 
 ### Notifications
 
@@ -297,10 +301,6 @@ to something similar to "http://domain/#channel/2011-03-09 14:25:09", or
     truncated and ellipsized at or before this length is reached.  A value of 0 (zero) will
     disable this option.
 
-    When using the custom URL service, this options allows you to specify the URL to send
-    a GET request to, and has keyword expansion performed on portions of it, including the
-    path and any query parameter values.
-
 *   `message_title` Default: `{title}`
 
     Title that will be provided for the push notification.  Keyword expansion is performed
@@ -313,6 +313,10 @@ to something similar to "http://domain/#channel/2011-03-09 14:25:09", or
     URI that will be sent with the push notification.  This could be a web address or a
     local scheme to access a mobile application.  Keyword expansion is performed on this
     value.
+
+    When using the custom URL service, this options allows you to specify the URL to send
+    a GET request to, and has keyword expansion performed on portions of it, including the
+    path and any query parameter values.
 
 *   `message_uri_post` Default: `no`
 
@@ -534,6 +538,7 @@ from me and not from my employer.  See the `LICENSE` file for details.
 [Nexmo]: https://www.nexmo.com
 [Pushalot]: https://pushalot.com/
 [Pushjet]: http://pushjet.io
+[Telegram]: https://telegram.org/
 
 [faq]: https://github.com/jreese/znc-push/blob/master/doc/faq.md
 [examples]: https://github.com/jreese/znc-push/blob/master/doc/examples.md
