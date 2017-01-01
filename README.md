@@ -18,12 +18,12 @@ conditions.  ZNC Push current supports the following services:
 * [Prowl][]
 * [Supertoasty][]
 * [PushBullet][]
-* [Airgram][]
 * [Faast][]
 * [Nexmo][]
 * [Pushalot][]
 * [Pushjet][]
 * [Telegram][]
+* [Slack][]
 * Custom URL GET requests
 
 This project is still a Work In Progress, but should be functional enough and stable enough
@@ -125,7 +125,7 @@ and looking in your profile or settings:
     /msg *push set username foo
     /msg *push set secret ...
 
-If you're using Boxcar or Airgram, you need to use the following command to send a subscription request
+If you're using Boxcar, you need to use the following command to send a subscription request
 to your account, before ZNC Push can start working:
 
     /msg *push subscribe
@@ -247,17 +247,17 @@ to something similar to "http://domain/#channel/2011-03-09 14:25:09", or
     *   `prowl`
     *   `supertoasty`
     *   `pushbullet`
-    *   `airgram`
     *   `nexmo`
     *   `pushjet`
     *   `telegram`
+    *   `slack`
     *   `url`
 
 *   `username` Default: ` `
 
     User account that should receive push notifications.
 
-    This option must be set when using Boxcar, or Pushover. For Airgram authenticated services and Nexmo, this is the service/api key.
+    This option must be set when using Boxcar or Pushover. For Nexmo, this is the service/api key.
 
     When using the custom URL service, if this option is set it will enable HTTP basic
     authentication and be used as username.
@@ -266,7 +266,7 @@ to something similar to "http://domain/#channel/2011-03-09 14:25:09", or
 
     Authentication token for push notifications.
 
-    This option must be set when using Notify My Android, Pushover, Prowl, Supertoasty, Airgram authenticated services, PushBullet, Nexmo, Pushjet, or Telegram.
+    This option must be set when using Notify My Android, Pushover, Prowl, Supertoasty, PushBullet, Nexmo, Pushjet, or Telegram.
 
     When using the custom URL service, if this option is set it will enable HTTP basic
     authentication and be used as password.
@@ -282,8 +282,6 @@ to something similar to "http://domain/#channel/2011-03-09 14:25:09", or
 
     When using Nexmo, this option allows you to specify the SMS destination
     number. The number must be in international format.
-
-    When using Airgram, this is the email address of the end user.
 
     When using Telegram, this is the id of the chat that receives the message.
 
@@ -533,12 +531,12 @@ from me and not from my employer.  See the `LICENSE` file for details.
 [Prowl]: http://www.prowlapp.com
 [Supertoasty]: http://www.supertoasty.com
 [PushBullet]: https://www.pushbullet.com/
-[Airgram]: http://airgramapp.com/
 [Faast]: http://faast.io/
 [Nexmo]: https://www.nexmo.com
 [Pushalot]: https://pushalot.com/
 [Pushjet]: http://pushjet.io
 [Telegram]: https://telegram.org/
+[Slack]: https://slack.com/
 
 [faq]: https://github.com/jreese/znc-push/blob/master/doc/faq.md
 [examples]: https://github.com/jreese/znc-push/blob/master/doc/examples.md
