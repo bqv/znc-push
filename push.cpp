@@ -164,6 +164,7 @@ class CPushMod : public CModule
 			defaults["away_only"] = "no";
 			defaults["client_count_less_than"] = "0";
 			defaults["highlight"] = "";
+			defaults["match_case"] = "no";
 			defaults["idle"] = "0";
 			defaults["last_active"] = "180";
 			defaults["last_notification"] = "300";
@@ -896,10 +897,13 @@ class CPushMod : public CModule
             }
 
             std::smatch match;
-			std::regex expression = std::regex(value,
-                    std::regex_constants::ECMAScript | std::regex_constants::icase);
+            std::regex_constants::syntax_option_type flags = std::regex_constants::ECMAScript;
+            if (options["match_case"].AsLower() != "yes") {
+                flags |= std::regex_constants::icase;
+            }
+			std::regex expression(value, flags);
 
-            regex_search(message, match, expression);
+            std::regex_search(message, match, expression);
 
             return !match.empty();
 		}
